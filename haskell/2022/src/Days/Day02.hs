@@ -20,12 +20,12 @@ parseRound = do
   opponentMove <- char 'A' $> Rock <|> char 'B' $> Paper <|> char 'C' $> Scissors
   _ <- space
   myMoveSymbol <- char 'X' $> X <|> char 'Y' $> Y <|> char 'Z' $> Z
-  return UnresolvedRound {opponentMove, myMoveSymbol}
+  return UnresolvedGame {opponentMove, myMoveSymbol}
 
 ------------ TYPES ------------
 data Move = Rock | Paper | Scissors deriving (Show)
 data MyMoveSymbol = X | Y | Z deriving (Show)
-data UnresolvedGame = UnresolvedRound
+data UnresolvedGame = UnresolvedGame
   { opponentMove :: Move
   , myMoveSymbol :: MyMoveSymbol
   } deriving (Show)
@@ -37,17 +37,17 @@ type OutputB = Integer
 
 ------------ PART A ------------
 data Outcome = Win | Tie | Lose
-data ResolvedGame = ResolvedRound
+data ResolvedGame = ResolvedGame
   { myMove :: Move
   , outcome :: Outcome
   }
 type Strategy = UnresolvedGame -> Move
 
 play :: Strategy -> UnresolvedGame -> ResolvedGame
-play myStrategy game =
-  ResolvedRound{myMove, outcome}
+play strategy game =
+  ResolvedGame {myMove, outcome}
   where
-    myMove = myStrategy game
+    myMove = strategy game
     outcome = case (opponentMove game, myMove) of
       (Rock, Scissors) -> Lose
       (Rock, Paper) -> Win
@@ -57,22 +57,18 @@ play myStrategy game =
       (Paper, Scissors) -> Win
       (_, _) -> Tie
 
-scoreOutcome :: ResolvedGame -> Integer
-scoreOutcome game = case outcome game of
-  Lose -> 0
-  Tie -> 3
-  Win -> 6
-
-scoreMove :: ResolvedGame -> Integer
-scoreMove game = case myMove game of
-  Rock -> 1
-  Paper -> 2
-  Scissors -> 3
-
 score :: Strategy -> UnresolvedGame -> Integer
-score strategy game = scoreMove resolved + scoreOutcome resolved
+score strategy game = scoreMove + scoreOutcome
   where
     resolved = play strategy game
+    scoreOutcome = case outcome resolved of
+      Lose -> 0
+      Tie -> 3
+      Win -> 6
+    scoreMove = case myMove resolved of
+      Rock -> 1
+      Paper -> 2
+      Scissors -> 3
 
 naive :: Strategy
 naive game = case myMoveSymbol game of
