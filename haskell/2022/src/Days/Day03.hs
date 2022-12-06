@@ -7,6 +7,7 @@ import Data.Attoparsec.Text
 import Data.List.Split (chunksOf)
 
 import qualified Program.RunDay as R (runDay, Day)
+import Data.Foldable (Foldable(toList))
 {- ORMOLU_ENABLE -}
 
 runDay :: R.Day
@@ -32,10 +33,9 @@ decode :: Char -> Int
 decode x = ord x - (if isUpper x then 38 else 96)
 
 halve :: forall a . [a] -> [[a]]
-halve x = [fst halved, snd halved]
+halve x = toList (splitAt half x)
    where
     half = length x `div` 2
-    halved = splitAt half x
 
 partA :: Input -> OutputA
 partA = sum . map priority
