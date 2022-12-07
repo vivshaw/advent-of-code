@@ -1,39 +1,56 @@
 module Days.Day04 (runDay) where
 
-{- ORMOLU_DISABLE -}
-import Data.List
-import Data.Map.Strict (Map)
-import qualified Data.Map.Strict as Map
-import Data.Maybe
-import Data.Set (Set)
-import qualified Data.Set as Set
-import Data.Vector (Vector)
-import qualified Data.Vector as Vec
-import qualified Util.Util as U
+import Data.Attoparsec.Text
+    ( many1, sepBy, digit, char, endOfLine, Parser )
 
 import qualified Program.RunDay as R (runDay, Day)
-import Data.Attoparsec.Text
-import Data.Void
-{- ORMOLU_ENABLE -}
 
 runDay :: R.Day
 runDay = R.runDay inputParser partA partB
 
 ------------ PARSER ------------
 inputParser :: Parser Input
-inputParser = error "Not implemented yet!"
+inputParser = pair `sepBy` endOfLine
+
+pair :: Parser ElfPair
+pair = do
+  elf1 <- assignment
+  _ <- char ','
+  elf2 <- assignment
+  return (elf1, elf2)
+
+assignment :: Parser Assignment
+assignment = do
+  start <- read <$> many1 digit
+  _ <- char '-'
+  end <- read <$> many1 digit
+  return (start, end)
 
 ------------ TYPES ------------
-type Input = Void
+type Assignment = (Int, Int)
+type ElfPair = (Assignment, Assignment)
+type Input = [ElfPair]
 
-type OutputA = Void
+type OutputA = Int
 
-type OutputB = Void
+type OutputB = Int
+
+------------ UTILS -------------
+eitherWay :: ((t, t) -> Bool) -> (t, t) -> Bool
+eitherWay fun (x, y) = fun (x, y) || fun (y, x)
+
+countBy :: (a -> Bool) -> [a] -> Int
+countBy predicate x = length $ filter predicate x
+-- Why can't this be `countBy = length . filter`??
 
 ------------ PART A ------------
 partA :: Input -> OutputA
-partA = error "Not implemented yet!"
+partA = countBy $ eitherWay contains
+  where
+    contains (x, y) = fst x >= fst y && snd x <= snd y
 
 ------------ PART B ------------
 partB :: Input -> OutputB
-partB = error "Not implemented yet!"
+partB = countBy $ eitherWay overlaps
+  where
+    overlaps (x, y) = (fst x >= fst y && fst x <= snd y) || (snd x >= fst y && snd x <= snd y)
